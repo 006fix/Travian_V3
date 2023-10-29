@@ -1,13 +1,31 @@
 
-import Classes.Game_World.Tiles.Basic_Tile as basic_tile
-import Classes.Game_World.Tiles.Oasis as oasis
-import Classes.Game_World.Tiles.Wilderness as wilderness
+import Function_Repository.Create_and_Populate_Map as populate_map
 
-for i in range(10):
-        test_tile = basic_tile.Square("test_loc")
-        if test_tile.type_square == 'wilderness':
-            new_test_tile = wilderness.Wilderness(test_tile)
-            print(f'testing, {new_test_tile.wilderness_flag}')
-        elif test_tile.type_square == 'oasis':
-            new_test_tile = oasis.Oasis(test_tile)
-            print(f'oasis tile created of type {new_test_tile.resource_types}')
+tile_squares = populate_map.create_map(100)
+num_wilderness = 0
+num_oasis = 0
+num_habitable = 0
+total_squares = 0
+hab_type_dict = {}
+for i in tile_squares:
+    total_squares += 1
+    if i.type_square == 'wilderness':
+        num_wilderness += 1
+    elif i.type_square == 'oasis':
+        num_oasis += 1
+    elif i.type_square == 'habitable':
+        num_habitable += 1
+        holdval = str(i.type_hab)
+        try:
+            holdval2 = hab_type_dict[holdval]
+            holdval2 += 1
+            hab_type_dict[holdval] = holdval2
+        except:
+            hab_type_dict[holdval] = 1
+    else:
+        raise ValueError("Unknown type of square encountered, please investigate.")
+
+print(f'Map has been fully created, with {total_squares} squares, {num_wilderness} wilderness tiles, {num_oasis} oasis tiles, and {num_habitable} habitable tiles')
+print('Among our various habitable squares, we have numerous types of squares:')
+for key in hab_type_dict:
+    print(f'For the type: {key}, we have a record of {hab_type_dict[key]} entries')

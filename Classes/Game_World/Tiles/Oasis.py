@@ -1,13 +1,26 @@
 
-import Classes.Game_World.Tiles.Basic_Tile as base_tile
 import random
 # this class serves as the holder for the slightly more advanced type of square, the oasis
 # the oasis can be owned by players, gathers animals, and gathers resources into itself
 # it can also be of various types.
 
-class Oasis(base_tile.Square):
+class Oasis:
     def __init__(self, location):
-        super().__init__(location)
+        # location of square within world map
+        self.location = location
+        # interactable flag serves to identify if square can be interacted with by players
+        self.interactable = True
+        # identifies which play owns this square
+        self.owner = None
+        # identifies when this square was last active, with reference to the global game clock
+        self.Last_Active = 0
+        # identifies whether this square is asleep or not. If it changes to false, subsidary
+        # functions should have the ability to act on this information.
+        self.Sleep = True
+        # serves to identify what type of square this is
+        self.type_square = 'oasis'
+        # this serves to be updated as required to trigger the oasis to update its stats
+        self.next_action = False
         # adding in a "resource_types" field, to determine type of oasis
         self.resource_types = []
         # 25% odds to be each type of resource
@@ -49,9 +62,6 @@ class Oasis(base_tile.Square):
         # to do later : add function to limit withdrawls via raids from any individual player
 
         # to do later : add in oasis defenders, actually make these defenders.
-
-        # this serves to be updated as required to trigger the oasis to update its stats
-        self.next_action = False
 
     # to do later : add in ability for oasis to check its resources and update as needed based on elapsed time since last action
 
