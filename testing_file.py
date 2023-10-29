@@ -53,7 +53,7 @@ while not_found_test:
             test_loc = i.location
             test_type_hab = i.type_hab
             test_field_list_dict = i.field_list_dict
-            test_village = village.Village(test_loc, test_type_hab, test_field_list_dict)
+            test_village = village.Village(test_loc, test_type_hab, test_field_list_dict, "test_owner")
             print(f'We used test logic of location {test_loc}, type_hab {test_type_hab}, and fields {test_field_list_dict}')
             print(f'Post creation, we have values of location {test_village.location}, type_hab {test_village.type_hab}, and fields {test_village.field_list_dict}')
             break

@@ -7,6 +7,12 @@ To do items (secondary additions):
 #4 : as number 3, but for habitable squares in villages
 #5 : create a hero class, give ability for players to own heroes
 #6 : add in various playable races (much later stage!!!)
+#7 : create function which ensures village names are globally distinct, and allows change
+#8 : create function which allows villages to be added to player data, and removed, as needed
+#9 : create walls and rally point building data, include in village class on creation
+#10 : villages contain a "currently upgrading" field to hold current upgrades. How do we actually use this?
+#11 : villages contain the function "modify_building_time" which updates based on main building level. How and when should it be called?
+#12 : thought related to N11 : possibly create a function which checks the various things that might need to be called, and calls them as needed each update cycle.
 
 To do items (core additions):
 #1 DONE : create a basic "player" class that stores info about the player 29/10/2023 DONE
@@ -14,5 +20,6 @@ To do items (core additions):
 #3 : create a "village" class that stores the player village (BIG ITEM)
     #3.1 DONE : provide base data for buildings 29/10/2023 DONE
     #3.2 DONE : create a basic holder for village class which can pseudo-inherit from habitable class 29/10/2023 DONE
-#4 : create a function which allocates our various players to villages and creates them
+#4 : create a function which allocates our various players to villages and creates them (partial completion)
+
 
