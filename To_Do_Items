@@ -12,5 +12,7 @@ To do items (core additions):
 #1 DONE : create a basic "player" class that stores info about the player 29/10/2023 DONE
 #2 DONE : create a basic function that creates various players on map start 29/10/2023 DONE
 #3 : create a "village" class that stores the player village (BIG ITEM)
+    #3.1 DONE : provide base data for buildings 29/10/2023 DONE
+    #3.2 DONE : create a basic holder for village class which can pseudo-inherit from habitable class 29/10/2023 DONE
 #4 : create a function which allocates our various players to villages and creates them
 

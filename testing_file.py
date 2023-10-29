@@ -1,6 +1,7 @@
 
 import Function_Repository.Create_and_Populate_Map as populate_map
 import Function_Repository.Create_and_Populate_Players as populate_players
+import Classes.Game_World.Villages.Village as village
 
 # successful test of the basic map creation, including summaries of various types of villages etc
 
@@ -37,3 +38,22 @@ for key in hab_type_dict:
 playerbase = populate_players.create_playerbase(100)
 print(f'There are {len(playerbase)} players')
 print(f'As an example, the name of the final player is {playerbase[-1].name}')
+
+
+# testing basic logic for creation of village.
+# successful test, but a true creation function will need to overwrite the values in the core map space.
+not_found_test = True
+while not_found_test:
+    for i in tile_squares:
+        if i.type_square != 'habitable':
+            pass
+        else:
+            # stopping the test now we've found a habitable square
+            not_found_test = False
+            test_loc = i.location
+            test_type_hab = i.type_hab
+            test_field_list_dict = i.field_list_dict
+            test_village = village.Village(test_loc, test_type_hab, test_field_list_dict)
+            print(f'We used test logic of location {test_loc}, type_hab {test_type_hab}, and fields {test_field_list_dict}')
+            print(f'Post creation, we have values of location {test_village.location}, type_hab {test_village.type_hab}, and fields {test_village.field_list_dict}')
+            break
