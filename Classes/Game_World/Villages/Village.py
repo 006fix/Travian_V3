@@ -5,6 +5,7 @@
 # this is because it needs to inherit specific random instantiations of the parent class, and not the general logic
 
 import Base_Data.Buildings_Data as building_data
+import Base_Data.Fields_Data as fields_data
 
 class Village:
     def __init__(self, location, type_hab, field_list_dict, owner, name):
@@ -29,7 +30,7 @@ class Village:
         # on instantiation, we will pull the instance specific logic of type hab, and store it here too
         self.type_hab = type_hab
         # we also pull the entire list of fields that are already created as part of the habitable instantion
-        self.field_list_dict = field_list_dict
+        self.fields = field_list_dict
 
         # now we add some of the village specific pieces of logic
 
@@ -209,6 +210,9 @@ class Village:
 
         # holder variable for the buildings that can be built
         possible_buildings = []
+        # holder variable for theoretically buildable, but not with current stored resources
+        possible_buildings_later = []
+
         # get readings of current yields so we know how much crop we have spare
         current_yields = self.yield_calc()
         # im going to keep this as the /3600 version, and will /3600 future crop usages of buildings
@@ -222,4 +226,63 @@ class Village:
                 # this is defined as the index 2 position of the building.
                 # but this will need an update later where we actually lock some upgrades behind others
                 # to do : build this upgrade restriction logic into code
+                if holdval[2] == True:
+                    # get the level of the building
+                    building_level = holdval[1]
+                    # take building name for lookup in building data
+                    keyval = holdval[0]
+                    # controls for buildings that can dupe
+                    if 'warehouse' in keyval:
+                        keyval = 'warehouse'
+                    if 'granary' in keyval:
+                        keyval = 'granary'
+                    upgrade_cost = building_data.building_dict[keyval][building_level][0]
+                    # we need to know how much pop this upgrade will cost
+                    # this is defined as the pop usage of the next level, minus the pop usage of the current level
+                    upgrade_pop_cost = building_data.building_dict[keyval][building_level+1][2] - building_data.building_dict[keyval][building_level][2]
+
+                    # now we need to identify whether the upgrade is actually possible
+                    # this has three elements :
+                        # 1: does any part of the upgrade require more than we can maximally store?
+                        # 2: does any part of the upgrade require more than we current have?
+                        #3 : is the crop usage higher than our current crop total?
+                    # if 2 is true, but 1 isn't, we can't build it now, but we could eventually
+                    # if 3 is true, we can't build it regardless
+                    # we have three lists, and can compare item by item. for each cond, True = allowed, False = not allowed
+                    cond1 = True
+                    cond2 = True
+                    cond3 = True
+                    # cond1
+                    for i in range(len(upgrade_cost)):
+                        if upgrade_cost[i] > self.storage_cap[i]:
+                            cond1 = False
+                    # cond2
+                    for i in range(len(upgrade_cost)):
+                        if upgrade_cost[i] > self.stored[i]:
+                            cond2 = False
+                    # cond3
+                    if (upgrade_pop_cost/3600) > current_crop:
+                        cond3 = False
+
+                    #can build at this moment in time
+                    if cond1 and cond2 and cond3:
+                        # passing building to build as key, name, and level (current)
+                        final_value = [key, holdval[0], building_level]
+                        possible_buildings.append(final_value)
+
+                    #can build but not with stored resources
+                    if (cond1 and cond3) and cond2 == False:
+                        # passing building to build as key, name, and level (current)
+                        final_value = [key, holdval[0], building_level]
+                        possible_buildings_later.append(final_value)
+
+        # now we need to search through all fields
+        for key in self.fields:
+            holdval = self.fields[key]
+            field_level = holdval.level
+            # we now need the true key for lookups. i.e if the field is "Wood3", we just need "Wood"
+            key2 = key[:4]
+            upgrade_cost = fields_data.field_dict[key2][field_level][0]
+            upgrade_pop_cost = fields_data.field_dict[key2][field_level+1][2] - fields_data.field_dict[key2][field_level][2]
+
 
