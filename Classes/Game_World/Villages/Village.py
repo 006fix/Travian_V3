@@ -92,3 +92,134 @@ class Village:
                     storage = building_data.building_dict['granary'][level][4]
                     granary_storage += storage
         self.storage_cap = [warehouse_storage, warehouse_storage, warehouse_storage, granary_storage]
+
+    def calculate_pop(self):
+        # this function serves to iterate through our buildings in the village and calculate total pop
+        total_pop = 0
+        # calculate pop from buildings
+        for key in self.buildings:
+            holder = self.buildings[key]
+            # check if its empty
+            if len(holder) > 0:
+                building = holder[0]
+                # controls for buildings that can duplicate
+                if 'warehouse' in building:
+                    building = 'warehouse'
+                if 'granary' in building:
+                    building = 'granary'
+                level = holder[1]
+                pop = building_data.building_dict[building][level][2]
+                total_pop += pop
+        for key in self.fields:
+            pop = self.fields[key].pop
+            total_pop += pop
+        self.pop = total_pop
+
+    def calculate_cp(self, game_counter, self_last_active):
+        # this function serves to generate total CP generated since the last time the cp were calculated
+        # HOWEVER, THIS IS WRONG
+        # to do : modify this so that it doesn't include the newly built building in the totals.
+        # this function uses self last active and global game counter.
+        total_cp = 0
+        # calculate pop from buildings
+        for key in self.buildings:
+            holder = self.buildings[key]
+            # check if its empty
+            if len(holder) > 0:
+                building = holder[0]
+                # controls for buildings that can duplicate
+                if 'warehouse' in building:
+                    building = 'warehouse'
+                if 'granary' in building:
+                    building = 'granary'
+                level = holder[1]
+                cp = building_data.building_dict[building][level][1]
+                total_cp += cp
+        for key in self.fields:
+            pop = self.fields[key].cp
+            total_cp += cp
+        local_duration_slept = game_counter - self_last_active
+        # 86400 = seconds in a day
+        cp_per_sec = total_cp / 86400
+        cp_gained = cp_per_sec * local_duration_slept
+        current_cp = self.cp
+        self.cp = current_cp + cp_gained
+
+    def get_building_pop(self):
+        # this function serves to identify total pop at a given point in time
+        # this can be used in yield calculations to determine how much needs to be subtracted from crop
+        total_pop_usage = 0
+        for key in self.buildings:
+            # this line below is to identify the null values
+            holdval = self.buildings[key]
+            if len(holdval) > 1:
+                building = self.buildings[key][0]
+                building_level = self.buildings[key][1]
+                if 'warehouse' in building:
+                    building = 'warehouse'
+                if 'granary' in building:
+                    building = 'granary'
+                pop_usage = building_data.building_dict[building][building_level][2]
+                total_pop_usage += pop_usage
+
+            # now divide by 3600, to match the yield calc
+            total_pop_usage /= 3600
+            return total_pop_usage
+
+    def yield_calc(self):
+        # this function serves to calculate our yield, per second, for our various resources
+        # this obviously generates fractional values, but that is what it is
+        wood_yield = 0
+        clay_yield = 0
+        iron_yield = 0
+        crop_yield = 0
+        crop_usage = 0
+        for key3 in self.fields:
+            if 'Wood' in key3:
+                wood_yield += self.fields[key3].field_yield / 3600
+                crop_usage += self.fields[key3].pop / 3600
+            if 'Clay' in key3:
+                clay_yield += self.fields[key3].field_yield / 3600
+                crop_usage += self.fields[key3].pop / 3600
+            if 'Iron' in key3:
+                iron_yield += self.fields[key3].field_yield / 3600
+                crop_usage += self.fields[key3].pop / 3600
+            if 'Crop' in key3:
+                crop_yield += self.fields[key3].field_yield / 3600
+                crop_usage += self.fields[key3].pop / 3600
+        # now reduce crop yield by crop usage
+
+        # modification to incorporate building pop usage
+        building_pop_usage = self.get_building_pop()
+        crop_usage += building_pop_usage
+        # modification ends
+        crop_yield -= crop_usage
+
+        if crop_yield == 0:
+            raise ValueError("This player now has zero crop yield, and must build crop")
+            # to do :  I need to modify this such that it doesn't just break the code, but instead actually limits future options
+
+        # now we've got the full yields out, so multiply by time passed
+        yields = [wood_yield, clay_yield, iron_yield, crop_yield]
+        return yields
+
+    def possible_buildings(self):
+        # this function is going to serve to identify what buildings can actually be built at any one time
+        # this will incorporate restrictions on the ability to build when crop levels become too low
+
+        # holder variable for the buildings that can be built
+        possible_buildings = []
+        # get readings of current yields so we know how much crop we have spare
+        current_yields = self.yield_calc()
+        # im going to keep this as the /3600 version, and will /3600 future crop usages of buildings
+        current_crop = current_yields[3]
+
+        #iterate through the buildings currently in the settlement:
+        for key in self.buildings:
+            holdval = self.buildings[key]
+            if len(holdval) > 0:
+                # now we check if the building is upgradeable
+                # this is defined as the index 2 position of the building.
+                # but this will need an update later where we actually lock some upgrades behind others
+                # to do : build this upgrade restriction logic into code
+

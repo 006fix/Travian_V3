@@ -13,6 +13,9 @@ To do items (secondary additions):
 #10 : villages contain a "currently upgrading" field to hold current upgrades. How do we actually use this?
 #11 : villages contain the function "modify_building_time" which updates based on main building level. How and when should it be called?
 #12 : thought related to N11 : possibly create a function which checks the various things that might need to be called, and calls them as needed each update cycle.
+#13 : villages contain a function "calculate cp" which updates total CP values. However i suspect in its current iteration it will also calculate for newly built buildings, and shouldn't.
+#14 : villages current identify if a building can be identified via a basic "True"/"False" flag. this needs to be updated later to include better logic, including the ability to lock some upgrades behind other critiera.
+#15 : much longer term idea. for the AI to have a better understanding of what it *could* do, I might want to incorporate some logic that shows it what it could possibly gain. i.e if I invade this oasis, i could gain x amount of resources
 
 To do items (core additions):
 #1 DONE : create a basic "player" class that stores info about the player 29/10/2023 DONE

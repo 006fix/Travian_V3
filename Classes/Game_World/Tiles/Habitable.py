@@ -48,9 +48,9 @@ class Habitable:
         for i in range(len(self.type_hab)):
             for j in range(1, self.type_hab[i] + 1):
                 # note - due to the presence of multiple fields of the same type, these are internally identified
-                # i.e, wood_3, the 3rd wood field within the settlement
+                # i.e, wood3, the 3rd wood field within the settlement
                 # this is primarily of relevance only when searching individual entries.
-                key = field_list[i] + "_" + str(j)
+                key = field_list[i] + str(j)
                 holdval = fields.Field(field_list[i])
                 self.field_list_dict[key] = holdval
 
