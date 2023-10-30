@@ -6,7 +6,7 @@
 
 import Base_Data.Buildings_Data as building_data
 import Base_Data.Fields_Data as fields_data
-
+import Function_Repository.duration_calc as duration_calc
 class Village:
     def __init__(self, location, type_hab, field_list_dict, owner, name):
         # location of square within world map
@@ -208,10 +208,12 @@ class Village:
         # this function is going to serve to identify what buildings can actually be built at any one time
         # this will incorporate restrictions on the ability to build when crop levels become too low
 
+        # both of these variables are two part lists. First part is for buildings, second is for fields
+        # this is needed as they're stored in subtly different ways
         # holder variable for the buildings that can be built
-        possible_buildings = []
+        possible_buildings = [[],[]]
         # holder variable for theoretically buildable, but not with current stored resources
-        possible_buildings_later = []
+        possible_buildings_later = [[],[]]
 
         # get readings of current yields so we know how much crop we have spare
         current_yields = self.yield_calc()
@@ -268,13 +270,13 @@ class Village:
                     if cond1 and cond2 and cond3:
                         # passing building to build as key, name, and level (current)
                         final_value = [key, holdval[0], building_level]
-                        possible_buildings.append(final_value)
+                        possible_buildings[0].append(final_value)
 
                     #can build but not with stored resources
                     if (cond1 and cond3) and cond2 == False:
                         # passing building to build as key, name, and level (current)
                         final_value = [key, holdval[0], building_level]
-                        possible_buildings_later.append(final_value)
+                        possible_buildings_later[0].append(final_value)
 
         # now we need to search through all fields
         for key in self.fields:
@@ -282,7 +284,128 @@ class Village:
             field_level = holdval.level
             # we now need the true key for lookups. i.e if the field is "Wood3", we just need "Wood"
             key2 = key[:4]
+            # for fields : if upgrade_cost == False, can't upgrade. as such, subset all else to this logic.
             upgrade_cost = fields_data.field_dict[key2][field_level][0]
+            if upgrade_cost == False:
+                #if unupgradeable, just skip this loop and carry on
+                continue
             upgrade_pop_cost = fields_data.field_dict[key2][field_level+1][2] - fields_data.field_dict[key2][field_level][2]
+
+            # now we need to identify whether the upgrade is actually possible
+            # this has three elements :
+            # 1: does any part of the upgrade require more than we can maximally store?
+            # 2: does any part of the upgrade require more than we current have?
+            # 3 : is the crop usage higher than our current crop total?
+            # if 2 is true, but 1 isn't, we can't build it now, but we could eventually
+            # if 3 is true, we can't build it regardless
+            # we have three lists, and can compare item by item. for each cond, True = allowed, False = not allowed
+            cond1 = True
+            cond2 = True
+            cond3 = True
+            # cond1
+            for i in range(len(upgrade_cost)):
+                if upgrade_cost[i] > self.storage_cap[i]:
+                    cond1 = False
+            # cond2
+            for i in range(len(upgrade_cost)):
+                if upgrade_cost[i] > self.stored[i]:
+                    cond2 = False
+            # cond3
+            if (upgrade_pop_cost / 3600) > current_crop:
+                cond3 = False
+            # cond3 has an extra piece of logic. If the building that would be built is for crop, it can always be built regardless
+            # cond4 : is crop in key
+            if key2 == 'Crop':
+                cond4 = True
+            else:
+                cond4 = False
+
+            # if cond4 is true, we simply force cond3 into being true
+            if cond4:
+                cond3 = True
+
+            # can build at this moment in time
+            if cond1 and cond2 and cond3:
+                # passing building to build as key, name, and level (current)
+                final_value = [key, field_level]
+                possible_buildings[1].append(final_value)
+
+            # can build but not with stored resources
+            if (cond1 and cond3) and cond2 == False:
+                # passing building to build as key, name, and level (current)
+                final_value = [key, field_level]
+                possible_buildings_later[1].append(final_value)
+
+        return possible_buildings, possible_buildings_later
+
+    # in the original code, there was a function which returned every possible non crop locked upgrade
+    # im going to avoid that for now, since i feel the possible buildings later from the above function serves a similar purpose
+
+    def upgrade_structure(self, upgrade_target):
+        # this function is called when a building or field is chosen to be upgraded.
+        # it returns the duration of this building to take place as a sleep duration
+        # this combines what were previosuly seperate functions, so will need to identify what is what
+
+        # step 1 : identify if building or field
+        if len(upgrade_target) == 3:
+            is_building = True
+        else:
+            is_building = False
+
+        if is_building:
+            building_dict_key = upgrade_target[0]
+            relevant_target = self.buildings[building_dict_key]
+            current_level = relevant_target[1]
+            upgradeable_check = relevant_target[2]
+            if upgradeable_check != True:
+                print(f" You are upgrading {upgrade_target}")
+                raise ValueError("You appear to have attempted to upgrade a building that cannot be upgraded :(")
+            # from the above we have some basic data, but we need a subset of the name to actually link
+            # to the building data field, due to duplicate buildings. This follows:
+            building_data_key = upgrade_target[1]
+            if 'warehouse' in building_data_key:
+                building_data_key = 'warehouse'
+            if 'granary' in building_data_key:
+                building_data_key = 'granary'
+            # now get upgrade costs
+            upgrade_cost = building_data.building_dict[building_data_key][current_level][0]
+            upgrade_time = building_data.building_dict[building_data_key][current_level][3]
+            true_upgrade_time = int(duration_calc.sec_val(upgrade_time) * self.upgrade_time_modifier)
+            # now update how many resources you have on hand
+            hold_vals = self.stored
+            for i in range(len(hold_vals)):
+                hold_vals[i] -= upgrade_cost[i]
+            self.stored = hold_vals
+            self.currently_upgrading.append(upgrade_target)
+
+            sleep_duration = true_upgrade_time
+
+        else:
+            field_data = self.fields[upgrade_target]
+            field_dict_key = upgrade_target[:4]
+
+            current_level = field_data.level
+            upgradeable_check = field_data.upgradeable
+            if upgradeable_check != True:
+                print(f"you are upgrading {upgrade_target}")
+                raise ValueError("You appear to have attempted to upgrade a field that cannot be upgraded :(")
+            upgrade_cost = fields_data.field_dict[field_dict_key][current_level][0]
+            upgrade_time = fields_data.field_dict[field_dict_key][current_level][3]
+            true_upgrade_time = int(generic_funcs.sec_val(upgrade_time) * self.upgrade_time_modifier)
+            # update what is currently stored as resources
+            hold_vals = self.stored
+            for i in range(len(hold_vals)):
+                hold_vals[i] -= upgrade_cost[i]
+            self.stored = hold_vals
+            self.currently_upgrading.append(upgrade_target)
+
+            sleep_duration = true_upgrade_time
+
+        return sleep_duration
+
+    def structure_upgraded(self, upgrade_target):
+
+
+
 
 
