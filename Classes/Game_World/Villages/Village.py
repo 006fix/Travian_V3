@@ -74,4 +74,21 @@ class Village:
         building_time = building_data.building_dict[main_building_key][main_building_level][4]
         self.upgrade_time_modifier = building_time
 
-
+    def calculate_storage(self):
+        # this function serves to identify our various warehouse and granaries, pull their storage, and calculate our storage
+        # this then modifies self values
+        warehouse_storage = 0
+        granary_storage = 0
+        for key in self.buildings:
+            holder = self.buildings[key]
+            # check if its empty
+            if len(holder) > 0:
+                if 'warehouse' in holder[0]:
+                    level = holder[1]
+                    storage = building_data.building_dict['warehouse'][level][4]
+                    warehouse_storage += storage
+                if 'granary' in holder[0]:
+                    level = holder[1]
+                    storage = building_data.building_dict['granary'][level][4]
+                    granary_storage += storage
+        self.storage_cap = [warehouse_storage, warehouse_storage, warehouse_storage, granary_storage]
