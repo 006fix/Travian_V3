@@ -381,8 +381,8 @@ class Village:
             sleep_duration = true_upgrade_time
 
         else:
-            field_data = self.fields[upgrade_target]
-            field_dict_key = upgrade_target[:4]
+            field_data = self.fields[upgrade_target[0]]
+            field_dict_key = upgrade_target[0][:4]
 
             current_level = field_data.level
             upgradeable_check = field_data.upgradeable
@@ -391,7 +391,7 @@ class Village:
                 raise ValueError("You appear to have attempted to upgrade a field that cannot be upgraded :(")
             upgrade_cost = fields_data.field_dict[field_dict_key][current_level][0]
             upgrade_time = fields_data.field_dict[field_dict_key][current_level][3]
-            true_upgrade_time = int(generic_funcs.sec_val(upgrade_time) * self.upgrade_time_modifier)
+            true_upgrade_time = int(duration_calc.sec_val(upgrade_time) * self.upgrade_time_modifier)
             # update what is currently stored as resources
             hold_vals = self.stored
             for i in range(len(hold_vals)):
@@ -403,7 +403,18 @@ class Village:
 
         return sleep_duration
 
-    def structure_upgraded(self, upgrade_target):
+    def structure_upgraded(self):
+        # this function serves to be called when a player actively completes the upgrade of a building
+        # it replaces a function in the old code which split out buildings and fields, as such will need to handle both
+        # input is going to be based on the value held in "current upgrading", which will be used to pull the upgrade target
+
+        upgrade_target = self.currently_upgrading
+        # step 1 : identify if building or field
+        if len(upgrade_target) == 3:
+            is_building = True
+        else:
+            is_building = False
+
 
 
 
