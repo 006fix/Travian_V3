@@ -381,11 +381,11 @@ class Village:
             sleep_duration = true_upgrade_time
 
         else:
-            field_data = self.fields[upgrade_target[0]]
+            current_field_data = self.fields[upgrade_target[0]]
             field_dict_key = upgrade_target[0][:4]
 
-            current_level = field_data.level
-            upgradeable_check = field_data.upgradeable
+            current_level = current_field_data.level
+            upgradeable_check = current_field_data.upgradeable
             if upgradeable_check != True:
                 print(f"you are upgrading {upgrade_target}")
                 raise ValueError("You appear to have attempted to upgrade a field that cannot be upgraded :(")
@@ -415,8 +415,69 @@ class Village:
         else:
             is_building = False
 
+        if is_building:
+            building_dict_key = upgrade_target[0]
+            relevant_target = self.buildings[building_dict_key]
+            current_level = relevant_target[1]
+            upgradeable_check = relevant_target[2]
+            if upgradeable_check != True:
+                print(f" You are upgrading {upgrade_target}")
+                raise ValueError("You appear to have attempted to upgrade a building that cannot be upgraded :(")
+            # now get the key for the building data file
+            building_data_key = upgrade_target[1]
+            if 'warehouse' in building_data_key:
+                building_data_key = 'warehouse'
+            if 'granary' in building_data_key:
+                building_data_key = 'granary'
 
+            # used to check if the new building is upgradeable
+            level_plusone = current_level + 1
+            still_upgradeable = building_data.building_dict[building_data_key][level_plusone][0]
+            if still_upgradeable[0] == False:
+                upgrade_possible = False
+            else:
+                upgrade_possible = True
+            # used to update the villages building list with the new level and upgradeability
 
+            # NOW WE NEED TO RESET THE SELF.BUILDINGS KEY TO ACCOUNT FOR EVERYTHING
+            self.buildings[building_dict_key][1] = level_plusone
+            self.buildings[building_dict_key][2] = upgrade_possible
 
+            # LATER, THIS WILL NEED TO BE CHANGED TO BE A SIMPLE REMOVAL OF THE 0TH INDEX
+            self.currently_upgrading = []
+
+            print(
+                f"I have completed my upgrade of the building {upgrade_target}. It has upgraded from {current_level} to {level_plusone}")
+
+        else:
+            current_field_data = self.fields[upgrade_target]
+            field_dict_key = upgrade_target[:4]
+
+            current_level = current_field_data.level
+            # lets just make sure the original field was actually upgradeable
+            upgradeable_check = current_field_data.upgradeable
+            if upgradeable_check != True:
+                raise ValueError("You appear to have attempted to upgrade a field that cannot be upgraded :(")
+
+            # used to check if the new building is upgradeable
+            # for fields in non capital, this will eventually need to cap at 10 in some way
+            level_plusone = current_level + 1
+            still_upgradeable = fields_data.field_dict[field_dict_key][level_plusone][0]
+            if still_upgradeable[0] == False:
+                upgrade_possible = False
+            else:
+                upgrade_possible = True
+            # used to update the villages building list with the new level and upgradeability
+
+            # NEW FUNCTION THAT UPDATES THE STATS OF THE FIELD ONCE ITS UPGRADED
+            current_field_data.update_stats()
+
+            fields_data.upgradeable = upgrade_possible
+
+            # LATER, THIS WILL NEED TO BE CHANGED TO BE A SIMPLE REMOVAL OF THE 0TH INDEX
+            self.currently_upgrading = []
+
+            print(
+                f"I have completed my upgrade of field {upgrade_target}. It has upgraded from {current_level} to {level_plusone}")
 
 

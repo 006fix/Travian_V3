@@ -16,11 +16,12 @@ To do items (secondary additions):
 #13 : villages contain a function "calculate cp" which updates total CP values. However i suspect in its current iteration it will also calculate for newly built buildings, and shouldn't.
 #14 : villages current identify if a building can be identified via a basic "True"/"False" flag. this needs to be updated later to include better logic, including the ability to lock some upgrades behind other critiera.
 #15 : much longer term idea. for the AI to have a better understanding of what it *could* do, I might want to incorporate some logic that shows it what it could possibly gain. i.e if I invade this oasis, i could gain x amount of resources
+#16 : fields in non capital villages will at some point need to cap at level 10
 
 To do items (core additions):
 #1 DONE : create a basic "player" class that stores info about the player 29/10/2023 DONE
 #2 DONE : create a basic function that creates various players on map start 29/10/2023 DONE
-#3 : create a "village" class that stores the player village (BIG ITEM)
+#3 DONE : create a "village" class that stores the player village (BIG ITEM) 31/10/2023 DONE
     #3.1 DONE : provide base data for buildings 29/10/2023 DONE
     #3.2 DONE : create a basic holder for village class which can pseudo-inherit from habitable class 29/10/2023 DONE
 #4 : create a function which allocates our various players to villages and creates them (partial completion)
