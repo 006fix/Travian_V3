@@ -2,6 +2,7 @@
 import random
 import Classes.Game_World.Tiles.Fields as fields
 
+
 # this class serves as the holder for the most common type of square, "habitable"
 # this square is interactable, ownable, and comes in various types
 # the majority of actions undertaken by players will take place within a square of this type

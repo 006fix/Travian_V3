@@ -17,6 +17,8 @@ To do items (secondary additions):
 #14 : villages current identify if a building can be identified via a basic "True"/"False" flag. this needs to be updated later to include better logic, including the ability to lock some upgrades behind other critiera.
 #15 : much longer term idea. for the AI to have a better understanding of what it *could* do, I might want to incorporate some logic that shows it what it could possibly gain. i.e if I invade this oasis, i could gain x amount of resources
 #16 : fields in non capital villages will at some point need to cap at level 10
+#17 : every building will need a specialist function in addition to the generic update stats function to update building specific stats
+
 
 To do items (core additions):
 #1 DONE : create a basic "player" class that stores info about the player 29/10/2023 DONE
