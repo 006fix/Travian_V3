@@ -7,6 +7,11 @@
 import Base_Data.Buildings_Data as building_data
 import Base_Data.Fields_Data as fields_data
 import Function_Repository.duration_calc as duration_calc
+import Classes.Game_World.Buildings.Base_Building as base_building
+import Classes.Game_World.Buildings.Main_Building as main_building
+import Classes.Game_World.Buildings.Granary as granary
+import Classes.Game_World.Buildings.Warehouse as warehouse
+
 class Village:
     def __init__(self, location, type_hab, field_list_dict, owner, name):
         # location of square within world map
@@ -40,12 +45,11 @@ class Village:
                           9: '', 10: '', 11: '', 12: '', 13: '', 14: '', 15: '', 16: '',
                           17: '', 18: '', 19: '', 20: '', 21: '', 22: ''}
         # structure of the below - reference key for buildings_dict lookup, level, upgradeable bool.
-        self.buildings[0] = ['main_building', 1, True]
-        self.buildings[1] = ['warehouse1', 0, True]
-        self.buildings[2] = ['granary1', 0, True]
-        # to do later : add walls and rally point, enable this logic
-        # self.buildings[22] = ['wall', 0, True]
-        # self.buildings[21] = ['rally_point', 0, True]
+        #modification for providing the relevant buildings
+        #first we instantiate a main builing
+        init_mb = main_building()
+        #now we assign this to the correct location
+        self.buildings[0] = [init_mb]
 
         # the two below items WILL need to be changed later, but these are instantiation standard
         # as ever, follows the rule ['wood','clay','iron','crop']
@@ -62,7 +66,7 @@ class Village:
         self.cp = 0
 
         # this stores the upgrade time modifier (based on main building level)
-        self.upgrade_time_modifier = 1
+        self.upgrade_time_modifier = self.buildings[0].upgrade_time_modifier
 
     # now have a series of class specific functions
 
@@ -70,10 +74,7 @@ class Village:
         #this function serves to identify the main building level, the associated modifiers to building time
         # and then update the self.upgrade_time_modifier value
         # to do : BUT WHEN AND HOW SHOULD IT BE CALLED?
-        main_building_key = self.buildings[0][0]
-        main_building_level = self.buildings[0][1]
-        building_time = building_data.building_dict[main_building_key][main_building_level][4]
-        self.upgrade_time_modifier = building_time
+        self.upgrade_time_modifier = self.buildings[0].upgrade_time_modifier
 
     def calculate_storage(self):
         # this function serves to identify our various warehouse and granaries, pull their storage, and calculate our storage
@@ -84,17 +85,17 @@ class Village:
             holder = self.buildings[key]
             # check if its empty
             if len(holder) > 0:
-                if 'warehouse' in holder[0]:
-                    level = holder[1]
-                    storage = building_data.building_dict['warehouse'][level][4]
+                name_key = holder.storage
+                if name_key == 'warehouse':
+                    storage = holder.storage
                     warehouse_storage += storage
-                if 'granary' in holder[0]:
-                    level = holder[1]
-                    storage = building_data.building_dict['granary'][level][4]
+                if name_key == 'granary':
+                    storage = holder.storage
                     granary_storage += storage
         self.storage_cap = [warehouse_storage, warehouse_storage, warehouse_storage, granary_storage]
 
     def calculate_pop(self):
+        #fishspider - we've reached this point in the modifications for using building classes
         # this function serves to iterate through our buildings in the village and calculate total pop
         total_pop = 0
         # calculate pop from buildings
